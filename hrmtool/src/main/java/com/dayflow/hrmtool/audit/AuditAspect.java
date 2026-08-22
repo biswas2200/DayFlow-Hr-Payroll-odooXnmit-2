@@ -25,12 +25,18 @@ public class AuditAspect {
 
         String newValue = result != null ? result.toString() : "null";
 
+        String changedBy = "system";
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getName() != null) {
+            changedBy = auth.getName();
+        }
+        
         AuditLog log = new AuditLog();
         log.setAction(auditable.action().isEmpty() ? joinPoint.getSignature().getName() : auditable.action());
         log.setEntityName(joinPoint.getTarget().getClass().getSimpleName());
         log.setOldValue(oldValue);
         log.setNewValue(newValue);
-        log.setChangedBy("system"); // Retrieve from SecurityContextHolder in reality
+        log.setChangedBy(changedBy);
         log.setTimestamp(LocalDateTime.now());
 
         auditLogRepository.save(log);

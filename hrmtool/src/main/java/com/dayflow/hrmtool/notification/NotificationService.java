@@ -4,6 +4,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Async;
+import com.dayflow.hrmtool.auth.AppUserRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,31 +21,30 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final NotificationPreferenceRepository preferenceRepository;
     private final NotificationWebSocketHandler webSocketHandler;
+    private final AppUserRepository appUserRepository;
+    private final JavaMailSender mailSender;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional
-    public void notify(Long userId, NotificationType type, String message, String refType, Long refId) {
+    public void notify(Long userId, String title, String message, NotificationType type, String refType, Long refId) {
         Notification notification = new Notification();
         notification.setUserId(userId);
-        notification.setType(type);
+        notification.setTitle(title);
         notification.setMessage(message);
-        notification.setTitle(type.name());
+        notification.setType(type);
         notification.setRefType(refType);
         notification.setRefId(refId);
         notification.setReadStatus(false);
         
-        notification = notificationRepository.save(notification);
-        final Notification savedNotification = notification;
-        
-        // Push via WebSocket
-        try {
-            webSocketHandler.sendNotification(userId, mapToDto(savedNotification));
-        } catch (Exception e) {
-            log.error("Failed to send websocket notification", e);
-        }
-        
-        // Send email async based on preferences
-        preferenceRepository.findByUserIdAndType(userId, type)
+        final Notification savedNotification = notificationRepository.save(notification);
+
+        preferenceRepository.findByUserId(userId)
+            .stream()
+            .findFirst()
             .ifPresentOrElse(pref -> {
+                if (pref.isPushEnabled()) {
+                    messagingTemplate.convertAndSend("/topic/user-" + userId, mapToDto(savedNotification));
+                }
                 if (pref.isEmailEnabled()) {
                     sendEmailAsync(userId, savedNotification);
                 }
@@ -50,10 +54,20 @@ public class NotificationService {
             });
     }
 
-
-    private void sendEmailAsync(Long userId, Notification notification) {
-        // Implement async email sending
-        log.info("Sending email to user {} for notification {}", userId, notification.getId());
+    @Async
+    public void sendEmailAsync(Long userId, Notification notification) {
+        try {
+            appUserRepository.findById(userId).ifPresent(user -> {
+                SimpleMailMessage message = new SimpleMailMessage();
+                message.setTo(user.getEmail());
+                message.setSubject(notification.getTitle());
+                message.setText(notification.getMessage());
+                mailSender.send(message);
+                log.info("Email sent to user {} for notification {}", userId, notification.getId());
+            });
+        } catch (Exception e) {
+            log.error("Failed to send email to user {} for notification {}: {}", userId, notification.getId(), e.getMessage());
+        }
     }
 
     public List<NotificationDto> listMine(Long userId, boolean unreadOnly) {

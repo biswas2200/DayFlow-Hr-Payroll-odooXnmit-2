@@ -35,8 +35,9 @@ public class NotificationEventListener {
         for (AppUser admin : admins) {
             notificationService.notify(
                     admin.getId(),
-                    NotificationType.LEAVE_REQUEST,
+                    NotificationType.LEAVE_REQUEST.name(),
                     message,
+                    NotificationType.LEAVE_REQUEST,
                     "LeaveRequest",
                     event.getLeaveRequestId()
             );
@@ -50,8 +51,9 @@ public class NotificationEventListener {
             String message = "Your leave request has been " + event.getStatus();
             notificationService.notify(
                     user.getId(),
-                    NotificationType.LEAVE_DECISION,
+                    NotificationType.LEAVE_DECISION.name(),
                     message,
+                    NotificationType.LEAVE_DECISION,
                     "LeaveRequest",
                     event.getLeaveRequestId()
             );
@@ -69,8 +71,9 @@ public class NotificationEventListener {
                 String message = "You have checked in but not checked out today. Please remember to check out.";
                 notificationService.notify(
                         user.getId(),
-                        NotificationType.REMINDER,
+                        NotificationType.REMINDER.name(),
                         message,
+                        NotificationType.REMINDER,
                         "Attendance",
                         attendance.getId()
                 );

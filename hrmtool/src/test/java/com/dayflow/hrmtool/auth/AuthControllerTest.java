@@ -64,7 +64,7 @@ class AuthControllerTest {
     @Test
     void login_withInvalidCredentials_returns401() throws Exception {
         LoginRequest req = new LoginRequest("BAD001", "WrongPass1!");
-        when(authService.login(any())).thenThrow(new BusinessException("Invalid credentials"));
+        when(authService.login(any())).thenThrow(new com.dayflow.hrmtool.common.AuthenticationException("Invalid credentials"));
 
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)

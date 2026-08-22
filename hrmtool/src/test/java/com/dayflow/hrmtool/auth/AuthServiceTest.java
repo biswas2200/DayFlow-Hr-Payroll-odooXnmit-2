@@ -55,7 +55,7 @@ class AuthServiceTest {
         // Simulate a persisted entity by using reflection or overriding id
         // Since BaseEntity has private id set by JPA, we mock the whole thing at test level
         // Just stub anyLong() for userId in generateAccessToken
-        when(jwtTokenProvider.generateAccessToken(any(), anyLong(), anyString()))
+        when(jwtTokenProvider.generateAccessToken(any(), org.mockito.ArgumentMatchers.nullable(Long.class), anyString()))
                 .thenReturn("access-token");
         when(jwtTokenProvider.generateRefreshToken(any()))
                 .thenReturn("refresh-token");

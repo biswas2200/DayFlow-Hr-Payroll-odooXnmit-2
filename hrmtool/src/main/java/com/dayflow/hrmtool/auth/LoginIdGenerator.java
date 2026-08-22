@@ -16,6 +16,7 @@ public class LoginIdGenerator {
         String namePart = fPart + lPart;
         String serialPart = String.format("%04d", serial);
 
-        return (companyInitials != null ? companyInitials : "") + namePart + joinYear + serialPart;
+        String cInitials = companyInitials != null ? companyInitials.toUpperCase() : "";
+        return cInitials + namePart + joinYear + serialPart;
     }
 }

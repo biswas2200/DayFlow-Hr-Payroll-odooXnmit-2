@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Dev-generated dumps ###
+endpoints_list.txt
+boot.log

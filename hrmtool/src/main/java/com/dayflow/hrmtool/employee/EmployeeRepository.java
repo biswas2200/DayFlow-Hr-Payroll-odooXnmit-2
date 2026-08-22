@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.List;
 
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
@@ -16,6 +17,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     Page<Employee> searchDirectory(@Param("companyId") Long companyId, @Param("search") String search, Pageable pageable);
     
     Page<Employee> findByCompanyId(Long companyId, Pageable pageable);
+    List<Employee> findByCompanyId(Long companyId);
     Optional<Employee> findByWorkEmail(String email);
     int countByCompanyIdAndYearOfJoining(Long companyId, int year);
 }

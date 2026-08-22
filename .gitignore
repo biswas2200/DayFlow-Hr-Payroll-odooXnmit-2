@@ -38,3 +38,6 @@ status_report/
 # --- Bulk generation scripts ---
 generate_all.py
 
+# --- Redundant/scratch API notes (superseded by documentation/design/09-api-documentation.md) ---
+API_DOCUMENTATION_AND_CURL.md
+
