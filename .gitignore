@@ -1,0 +1,40 @@
+# --- IDE / editor ---
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+
+# --- OS cruft ---
+.DS_Store
+Thumbs.db
+
+# --- Raw design source (not part of the shipped project) ---
+# PDFs + Excalidraw wireframe screenshots used only to derive the SRS/design docs
+# under documentation/. Kept locally, not versioned.
+Original Source/
+
+# --- Claude Code / AI agent tooling (local-only) ---
+.claude/
+.agents/
+skills-lock.json
+
+# --- Logs ---
+*.log
+
+# --- Angular frontend (WIP — not ready to commit yet) ---
+# Remove this line once the frontend is ready to be tracked; until then the
+# whole directory (including its own node_modules/, dist/, etc.) is excluded.
+dayflow-frontend/
+
+# --- Agent Session Memories ---
+AGENT_SESSION_MEMORY.md
+status_report/
+
+
+# --- Bulk generation scripts ---
+generate_all.py
+

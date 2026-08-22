@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: hrmtool-test
+
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
+  mail:
+    host: localhost
+    port: 3025
+    username: test
+    password: test
+
+app:
+  jwt:
+    secret: test-secret-key-for-testing-purposes-only-minimum-256-bits-length-required
+    access-token-expiry-ms: 900000
+    refresh-token-expiry-ms: 604800000
+
+  upload:
+    dir: /tmp/test-uploads
+
+logging:
+  level:
+    com.dayflow.hrmtool: WARN
+    org.springframework.security: WARN
