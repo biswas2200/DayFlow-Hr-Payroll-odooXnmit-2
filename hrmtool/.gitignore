@@ -4,20 +4,16 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-### STS ###
+# --- IDE / editor entries covered by the root .gitignore (.idea/, .vscode/,
+# *.iml, *.ipr, *.iws, .classpath, .project, .settings/) are intentionally
+# not repeated here; gitignore patterns without a leading slash already
+# apply at every directory depth, including inside hrmtool/.
+
+### STS (not covered by root — Eclipse/STS-specific, keep here) ###
 .apt_generated
-.classpath
 .factorypath
-.project
-.settings
 .springBeans
 .sts4-cache
-
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
 
 ### NetBeans ###
 /nbproject/private/
@@ -29,9 +25,5 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-### VS Code ###
-.vscode/
-
-### Dev-generated dumps ###
+### Dev-generated dumps (not covered by root) ###
 endpoints_list.txt
-boot.log
