@@ -252,30 +252,32 @@
             Generate Payslip (this month)
           </button>
         }
-        <table class="dt-table">
-          <thead>
-            <tr>
-              <th>Month/Year</th>
-              <th>Payable Days</th>
-              <th>Gross</th>
-              <th>Net</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (slip of payslips(); track slip.id) {
+        <div class="table-scroll">
+          <table class="dt-table">
+            <thead>
               <tr>
-                <td>{{ slip.month }}/{{ slip.year }}</td>
-                <td>{{ slip.payableDays }}</td>
-                <td>₹{{ slip.grossSalary | number: '1.2-2' }}</td>
-                <td>₹{{ slip.netSalary | number: '1.2-2' }}</td>
-                <td><button type="button" class="btn btn-secondary btn-sm" (click)="downloadPayslip(slip.id)">Download</button></td>
+                <th>Month/Year</th>
+                <th>Payable Days</th>
+                <th>Gross</th>
+                <th>Net</th>
+                <th></th>
               </tr>
-            } @empty {
-              <tr><td colspan="5" class="text-muted">No payslips generated yet.</td></tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              @for (slip of payslips(); track slip.id) {
+                <tr>
+                  <td>{{ slip.month }}/{{ slip.year }}</td>
+                  <td>{{ slip.payableDays }}</td>
+                  <td>₹{{ slip.grossSalary | number: '1.2-2' }}</td>
+                  <td>₹{{ slip.netSalary | number: '1.2-2' }}</td>
+                  <td><button type="button" class="btn btn-secondary btn-sm" (click)="downloadPayslip(slip.id)">Download</button></td>
+                </tr>
+              } @empty {
+                <tr><td colspan="5" class="text-muted">No payslips generated yet.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
       </form>
     }
 

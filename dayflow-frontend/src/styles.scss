@@ -64,6 +64,10 @@ button {
   font-family: inherit;
 }
 
+img {
+  max-width: 100%;
+}
+
 // --- Buttons ---
 .btn {
   display: inline-flex;
@@ -168,8 +172,18 @@ button {
 }
 
 // --- Tables ---
+// Wrap every <table class="dt-table"> in <div class="table-scroll"> — on
+// narrow screens the table scrolls horizontally within its own box instead
+// of forcing the whole page to scroll sideways or squashing columns unreadably.
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 table.dt-table {
   width: 100%;
+  min-width: 520px;
   border-collapse: collapse;
   background: var(--dt-surface);
 
@@ -179,6 +193,7 @@ table.dt-table {
     padding: 0.65em 0.9em;
     border-bottom: 1px solid var(--dt-border);
     font-size: 0.88rem;
+    white-space: nowrap;
   }
 
   th {
@@ -253,6 +268,14 @@ table.dt-table {
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
+
+  // Flex items default to min-width:auto, which floors their shrink at the
+  // content's intrinsic size — for a text input that can be wide enough to
+  // force overflow before flex-wrap ever kicks in. This lets .field children
+  // (and anything else) actually shrink to fit on narrow screens.
+  > * {
+    min-width: 0;
+  }
 }
 
 .spacer {
@@ -261,4 +284,25 @@ table.dt-table {
 
 .text-muted {
   color: var(--dt-text-muted);
+}
+
+// --- Responsive breakpoints ---
+// Tablet (~768–1024px, e.g. iPad) and phone (≤480px) get tighter page
+// padding so content isn't cramped against the viewport edge; every
+// component's own layout (grids, forms, tables) adapts in its own
+// stylesheet at these same breakpoints.
+@media (max-width: 900px) {
+  .page {
+    padding: 1.25rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: 1rem 0.75rem;
+  }
+
+  .btn {
+    font-size: 0.88rem;
+  }
 }

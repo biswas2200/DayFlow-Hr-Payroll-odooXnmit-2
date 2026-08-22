@@ -15,32 +15,34 @@
       />
     </div>
 
-    <table class="dt-table">
-      <thead>
-        <tr>
-          <th>Employee</th>
-          <th>Check In</th>
-          <th>Check Out</th>
-          <th>Work Hours</th>
-          <th>Extra Hours</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (row of adminRows(); track row.id) {
+    <div class="table-scroll">
+      <table class="dt-table">
+        <thead>
           <tr>
-            <td>{{ row.employeeName }}</td>
-            <td>{{ row.checkInTime || '—' }}</td>
-            <td>{{ row.checkOutTime || '—' }}</td>
-            <td>{{ row.workHours || '—' }}</td>
-            <td>{{ row.extraHours || '—' }}</td>
-            <td>{{ row.status }}</td>
+            <th>Employee</th>
+            <th>Check In</th>
+            <th>Check Out</th>
+            <th>Work Hours</th>
+            <th>Extra Hours</th>
+            <th>Status</th>
           </tr>
-        } @empty {
-          <tr><td colspan="6" class="text-muted">No attendance records for this date.</td></tr>
-        }
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          @for (row of adminRows(); track row.id) {
+            <tr>
+              <td>{{ row.employeeName }}</td>
+              <td>{{ row.checkInTime || '—' }}</td>
+              <td>{{ row.checkOutTime || '—' }}</td>
+              <td>{{ row.workHours || '—' }}</td>
+              <td>{{ row.extraHours || '—' }}</td>
+              <td>{{ row.status }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="text-muted">No attendance records for this date.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
   } @else {
     <div class="toolbar">
       <button class="btn btn-secondary btn-sm" (click)="shiftMonth(-1)">←</button>
@@ -57,31 +59,33 @@
       }
     </div>
 
-    <table class="dt-table">
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Check In</th>
-          <th>Check Out</th>
-          <th>Work Hours</th>
-          <th>Extra Hours</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (row of myRows(); track row.id) {
+    <div class="table-scroll">
+      <table class="dt-table">
+        <thead>
           <tr>
-            <td>{{ row.date }}</td>
-            <td>{{ row.checkInTime || '—' }}</td>
-            <td>{{ row.checkOutTime || '—' }}</td>
-            <td>{{ row.workHours || '—' }}</td>
-            <td>{{ row.extraHours || '—' }}</td>
-            <td>{{ row.status }}</td>
+            <th>Date</th>
+            <th>Check In</th>
+            <th>Check Out</th>
+            <th>Work Hours</th>
+            <th>Extra Hours</th>
+            <th>Status</th>
           </tr>
-        } @empty {
-          <tr><td colspan="6" class="text-muted">No attendance records this month.</td></tr>
-        }
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          @for (row of myRows(); track row.id) {
+            <tr>
+              <td>{{ row.date }}</td>
+              <td>{{ row.checkInTime || '—' }}</td>
+              <td>{{ row.checkOutTime || '—' }}</td>
+              <td>{{ row.workHours || '—' }}</td>
+              <td>{{ row.extraHours || '—' }}</td>
+              <td>{{ row.status }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="text-muted">No attendance records this month.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
   }
 </div>

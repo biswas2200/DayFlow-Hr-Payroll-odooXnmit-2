@@ -16,53 +16,55 @@
           <option value="REJECTED">Rejected</option>
         </select>
       </div>
-      <table class="dt-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Start Date</th>
-            <th>End Date</th>
-            <th>Time Off Type</th>
-            <th>Status</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (req of allRequests(); track req.id) {
+      <div class="table-scroll">
+        <table class="dt-table">
+          <thead>
             <tr>
-              <td>{{ req.employeeName }}</td>
-              <td>{{ req.startDate }}</td>
-              <td>{{ req.endDate }}</td>
-              <td>{{ req.leaveType }}</td>
-              <td>
-                <span
-                  class="badge"
-                  [class.badge-success]="req.status === 'APPROVED'"
-                  [class.badge-warning]="req.status === 'PENDING'"
-                  [class.badge-danger]="req.status === 'REJECTED'"
-                >{{ req.status }}</span>
-              </td>
-              <td>
-                @if (req.status === 'PENDING') {
-                  <div class="approval-actions">
-                    <input
-                      type="text"
-                      class="comment-input"
-                      placeholder="Comment (optional)"
-                      [ngModel]="commentFor(req.id)"
-                      (ngModelChange)="setComment(req.id, $event)"
-                    />
-                    <button class="btn btn-primary btn-sm" (click)="approve(req.id)">Approve</button>
-                    <button class="btn btn-danger btn-sm" (click)="reject(req.id)">Reject</button>
-                  </div>
-                }
-              </td>
+              <th>Name</th>
+              <th>Start Date</th>
+              <th>End Date</th>
+              <th>Time Off Type</th>
+              <th>Status</th>
+              <th></th>
             </tr>
-          } @empty {
-            <tr><td colspan="6" class="text-muted">No requests.</td></tr>
-          }
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (req of allRequests(); track req.id) {
+              <tr>
+                <td>{{ req.employeeName }}</td>
+                <td>{{ req.startDate }}</td>
+                <td>{{ req.endDate }}</td>
+                <td>{{ req.leaveType }}</td>
+                <td>
+                  <span
+                    class="badge"
+                    [class.badge-success]="req.status === 'APPROVED'"
+                    [class.badge-warning]="req.status === 'PENDING'"
+                    [class.badge-danger]="req.status === 'REJECTED'"
+                  >{{ req.status }}</span>
+                </td>
+                <td>
+                  @if (req.status === 'PENDING') {
+                    <div class="approval-actions">
+                      <input
+                        type="text"
+                        class="comment-input"
+                        placeholder="Comment (optional)"
+                        [ngModel]="commentFor(req.id)"
+                        (ngModelChange)="setComment(req.id, $event)"
+                      />
+                      <button class="btn btn-primary btn-sm" (click)="approve(req.id)">Approve</button>
+                      <button class="btn btn-danger btn-sm" (click)="reject(req.id)">Reject</button>
+                    </div>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="6" class="text-muted">No requests.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
     } @else {
       <div class="row">
         <div class="field" style="max-width:280px">
@@ -77,24 +79,26 @@
       </div>
 
       @if (selectedEmployeeId()) {
-        <table class="dt-table">
-          <thead>
-            <tr>
-              <th>Leave Type</th>
-              <th>Allocated Days</th>
-              <th>Used Days</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (alloc of allocations(); track alloc.leaveTypeId) {
+        <div class="table-scroll">
+          <table class="dt-table">
+            <thead>
               <tr>
-                <td>{{ alloc.leaveTypeName }}</td>
-                <td><input type="number" [(ngModel)]="alloc.allocatedDays" style="width:80px" /></td>
-                <td>{{ alloc.usedDays }}</td>
+                <th>Leave Type</th>
+                <th>Allocated Days</th>
+                <th>Used Days</th>
               </tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              @for (alloc of allocations(); track alloc.leaveTypeId) {
+                <tr>
+                  <td>{{ alloc.leaveTypeName }}</td>
+                  <td><input type="number" [(ngModel)]="alloc.allocatedDays" style="width:80px" /></td>
+                  <td>{{ alloc.usedDays }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
         <button class="btn btn-primary" (click)="saveAllocations()">Save Allocation</button>
       }
     }
@@ -153,37 +157,39 @@
       }
 
       <h4>My Requests</h4>
-      <table class="dt-table">
-        <thead>
-          <tr>
-            <th>Type</th>
-            <th>Start</th>
-            <th>End</th>
-            <th>Days</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (req of myRequests(); track req.id) {
+      <div class="table-scroll">
+        <table class="dt-table">
+          <thead>
             <tr>
-              <td>{{ req.leaveType }}</td>
-              <td>{{ req.startDate }}</td>
-              <td>{{ req.endDate }}</td>
-              <td>{{ req.numDays }}</td>
-              <td>
-                <span
-                  class="badge"
-                  [class.badge-success]="req.status === 'APPROVED'"
-                  [class.badge-warning]="req.status === 'PENDING'"
-                  [class.badge-danger]="req.status === 'REJECTED'"
-                >{{ req.status }}</span>
-              </td>
+              <th>Type</th>
+              <th>Start</th>
+              <th>End</th>
+              <th>Days</th>
+              <th>Status</th>
             </tr>
-          } @empty {
-            <tr><td colspan="5" class="text-muted">No time-off history yet.</td></tr>
-          }
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (req of myRequests(); track req.id) {
+              <tr>
+                <td>{{ req.leaveType }}</td>
+                <td>{{ req.startDate }}</td>
+                <td>{{ req.endDate }}</td>
+                <td>{{ req.numDays }}</td>
+                <td>
+                  <span
+                    class="badge"
+                    [class.badge-success]="req.status === 'APPROVED'"
+                    [class.badge-warning]="req.status === 'PENDING'"
+                    [class.badge-danger]="req.status === 'REJECTED'"
+                  >{{ req.status }}</span>
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="5" class="text-muted">No time-off history yet.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
 
       <h4>Public Holidays</h4>
       <ul class="holiday-list">

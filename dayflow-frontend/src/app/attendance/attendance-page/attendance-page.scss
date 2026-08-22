@@ -13,10 +13,19 @@
 .counters {
   display: flex;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .search {
   padding: 0.45em 0.8em;
   border: 1px solid var(--dt-border);
   border-radius: var(--dt-radius);
+  min-width: 0;
+  flex: 1 1 160px;
+}
+
+@media (max-width: 480px) {
+  .toolbar {
+    gap: 0.5rem;
+  }
 }

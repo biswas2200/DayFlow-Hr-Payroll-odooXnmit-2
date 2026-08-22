@@ -69,3 +69,21 @@
 h4 {
   margin-top: 1.5rem;
 }
+
+@media (max-width: 900px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .apply-form {
+    padding: 1.25rem 1rem;
+  }
+
+  .balance-card {
+    min-width: 0;
+    flex: 1 1 140px;
+  }
+}

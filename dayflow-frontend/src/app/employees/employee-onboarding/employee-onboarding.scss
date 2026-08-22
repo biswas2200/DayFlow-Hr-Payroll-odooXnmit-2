@@ -1,9 +1,17 @@
 .form-card,
 .success-card {
+  width: 100%;
   max-width: 480px;
   padding: 1.75rem;
   display: flex;
   flex-direction: column;
+}
+
+@media (max-width: 480px) {
+  .form-card,
+  .success-card {
+    padding: 1.25rem;
+  }
 }
 
 .password-row {

@@ -1,6 +1,7 @@
 .profile-header {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 1.25rem;
   padding: 1.5rem;
   margin-bottom: 1rem;
@@ -134,6 +135,38 @@
     &.error {
       color: var(--dt-status-danger);
       font-weight: 600;
+    }
+  }
+}
+
+// --- Tablet ---
+@media (max-width: 900px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
+// --- Phone: stack each salary-component row into its own column instead of
+// letting the fixed-width label/select/input wrap awkwardly mid-row. ---
+@media (max-width: 560px) {
+  .tab-panel {
+    padding: 1.25rem 1rem;
+  }
+
+  .component-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.4rem;
+
+    .comp-label,
+    select,
+    input {
+      width: 100%;
+    }
+
+    .computed-amount {
+      margin-left: 0;
     }
   }
 }

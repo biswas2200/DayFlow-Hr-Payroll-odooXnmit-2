@@ -1,5 +1,8 @@
 <header class="top-nav">
-  <div class="brand">Dayflow</div>
+  <a routerLink="/employees" class="brand">
+    <img src="logo-icon.png" alt="" width="28" height="16" class="brand-mark" />
+    <span class="brand-name">Dayflow</span>
+  </a>
 
   <nav class="tabs-nav">
     <a routerLink="/employees" routerLinkActive="active">Employees</a>
@@ -14,10 +17,15 @@
 
   <div class="systray">
     @if (!checkedIn()) {
-      <button class="btn btn-primary btn-sm" [disabled]="busy()" (click)="checkIn()">Check In →</button>
+      <button class="btn btn-primary btn-sm" [disabled]="busy()" (click)="checkIn()">
+        <span class="systray-full">Check In →</span>
+        <span class="systray-compact">In →</span>
+      </button>
     } @else {
       <button class="btn btn-secondary btn-sm checked-in" [disabled]="busy()" (click)="checkOut()">
-        <span class="pulse"></span> Since {{ checkInTime() }} · {{ elapsed() }} · Check Out
+        <span class="pulse"></span>
+        <span class="systray-full">Since {{ checkInTime() }} · {{ elapsed() }} · Check Out</span>
+        <span class="systray-compact">{{ elapsed() }}</span>
       </button>
     }
   </div>
