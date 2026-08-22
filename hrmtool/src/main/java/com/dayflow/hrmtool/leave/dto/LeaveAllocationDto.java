@@ -8,6 +8,7 @@ public class LeaveAllocationDto {
     private Long id;
     private Long employeeId;
     private Long leaveTypeId;
+    private String leaveTypeName;
     private int year;
     private BigDecimal allocatedDays;
     private BigDecimal usedDays;

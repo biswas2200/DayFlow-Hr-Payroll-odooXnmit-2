@@ -20,16 +20,16 @@ spring:
     open-in-view: false
 
   mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${MAIL_USERNAME:dayflow.noreply@gmail.com}
-    password: ${MAIL_PASSWORD:password}
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
     properties:
       mail:
         smtp:
-          auth: true
+          auth: false
           starttls:
-            enable: true
+            enable: false
 
   servlet:
     multipart:
@@ -37,7 +37,7 @@ spring:
       max-request-size: 10MB
 
 server:
-  port: 8081
+  port: 8080
   error:
     include-message: always
     include-binding-errors: always

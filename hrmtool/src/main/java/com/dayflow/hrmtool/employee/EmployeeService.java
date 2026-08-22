@@ -16,6 +16,8 @@ import com.dayflow.hrmtool.employee.dto.*;
 import com.dayflow.hrmtool.leave.LeaveRequest;
 import com.dayflow.hrmtool.leave.LeaveRequestRepository;
 import com.dayflow.hrmtool.leave.LeaveStatus;
+import com.dayflow.hrmtool.notification.NotificationService;
+import com.dayflow.hrmtool.notification.NotificationType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -43,28 +45,28 @@ public class EmployeeService {
     private final PasswordEncoder passwordEncoder;
     private final AttendanceRepository attendanceRepository;
     private final LeaveRequestRepository leaveRequestRepository;
+    private final NotificationService notificationService;
     
     public EmployeeResponse createEmployee(CreateEmployeeRequest req, Long companyId, Long creatingUserId) {
         if (!req.getPassword().equals(req.getConfirmPassword())) {
             throw new IllegalArgumentException("Passwords do not match");
         }
-        
-        Company company = companyRepository.findById(companyId)
-            .orElseThrow(() -> new IllegalArgumentException("Company not found"));
-            
+
+        Company company = resolveCompany(req, companyId);
+
         int year = LocalDate.now().getYear();
         
-        LoginSerialCounter counter = loginSerialCounterRepository.findByCompanyIdAndYear(companyId, year)
-            .orElse(LoginSerialCounter.builder().companyId(companyId).year(year).counter(0).build());
-        
+        LoginSerialCounter counter = loginSerialCounterRepository.findByCompanyIdAndYear(company.getId(), year)
+            .orElse(LoginSerialCounter.builder().companyId(company.getId()).year(year).counter(0).build());
+
         counter.setCounter(counter.getCounter() + 1);
         loginSerialCounterRepository.save(counter);
-        
+
         String loginId = loginIdGenerator.generate(company.getInitials(), req.getFirstName(), req.getLastName(), year, counter.getCounter());
         String tempPassword = tempPasswordGenerator.generate();
-        
+
         Employee employee = Employee.builder()
-            .companyId(companyId)
+            .companyId(company.getId())
             .firstName(req.getFirstName())
             .lastName(req.getLastName())
             .workEmail(req.getEmail())
@@ -99,14 +101,66 @@ public class EmployeeService {
             .employeeId(employee.getId())
             .build();
         bankDetailRepository.save(bankDetail);
-        
+
+        notificationService.notify(
+            appUser.getId(),
+            "Welcome to DayFlow HRMS",
+            "Your account has been created. Login ID: " + loginId + " | Temporary Password: " + tempPassword
+                + ". You will be required to change this password on first login.",
+            NotificationType.INFO,
+            "EMPLOYEE",
+            employee.getId()
+        );
+
         return EmployeeResponse.builder()
+                .id(employee.getId())
                 .loginId(loginId)
                 .tempPasswordIssued(true)
                 .tempPassword(tempPassword)
                 .build();
     }
     
+    private Company resolveCompany(CreateEmployeeRequest req, Long fallbackCompanyId) {
+        String name = req.getCompanyName();
+        if (name != null && !name.trim().isEmpty()) {
+            return companyRepository.findByNameIgnoreCase(name.trim())
+                .orElseGet(() -> {
+                    Company created = Company.builder()
+                        .name(name.trim())
+                        .logoUrl(req.getCompanyLogoUrl())
+                        .initials(deriveInitials(name.trim()))
+                        .workingDaysPerWeek(5)
+                        .breakHours(java.math.BigDecimal.ONE)
+                        .build();
+                    return companyRepository.save(created);
+                });
+        }
+        return companyRepository.findById(fallbackCompanyId)
+            .orElseThrow(() -> new IllegalArgumentException("Company not found"));
+    }
+
+    private String deriveInitials(String companyName) {
+        String[] words = companyName.trim().split("\\s+");
+        StringBuilder initials = new StringBuilder();
+        for (String word : words) {
+            if (!word.isEmpty()) {
+                initials.append(Character.toUpperCase(word.charAt(0)));
+            }
+            if (initials.length() >= 3) break;
+        }
+        if (initials.length() < 2 && !words[0].isEmpty()) {
+            initials = new StringBuilder(words[0].toUpperCase());
+            if (initials.length() > 2) initials.setLength(2);
+        }
+        return initials.toString();
+    }
+
+    public Long getCompanyIdForEmployee(Long employeeId) {
+        return employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new com.dayflow.hrmtool.common.ResourceNotFoundException("Employee not found"))
+                .getCompanyId();
+    }
+
     public Page<EmployeeCardDto> getDirectory(Long companyId, String search, Pageable pageable) {
         Page<Employee> page;
         if (search != null && !search.trim().isEmpty()) {
@@ -125,42 +179,49 @@ public class EmployeeService {
     
     public EmployeeProfileDto getById(Long id, Long viewerId, Role viewerRole) {
         Employee e = employeeRepository.findById(id).orElseThrow();
-        return mapToProfileDto(e, viewerRole == Role.ADMIN || id.equals(viewerId));
+        boolean isAdmin = viewerRole == Role.ADMIN;
+        return mapToProfileDto(e, isAdmin || id.equals(viewerId), isAdmin);
     }
-    
+
     public EmployeeProfileDto getMyProfile(Long userId) {
         AppUser user = appUserRepository.findById(userId).orElseThrow();
-        Employee e = employeeRepository.findById(user.getEmployeeId()).orElseThrow();
-        return mapToProfileDto(e, true);
+        if (user.getEmployeeId() == null) {
+            throw new com.dayflow.hrmtool.common.ResourceNotFoundException("Admin has no associated Employee profile");
+        }
+        Employee e = employeeRepository.findById(user.getEmployeeId())
+            .orElseThrow(() -> new com.dayflow.hrmtool.common.ResourceNotFoundException("Employee profile not found"));
+        return mapToProfileDto(e, true, user.getRole() == Role.ADMIN);
     }
-    
+
     public EmployeeProfileDto updateOwnProfile(Long userId, EmployeeSelfEditRequest dto) {
         AppUser user = appUserRepository.findById(userId).orElseThrow();
-        Employee e = employeeRepository.findById(user.getEmployeeId()).orElseThrow();
-        
+        if (user.getEmployeeId() == null) {
+            throw new com.dayflow.hrmtool.common.ResourceNotFoundException("Admin has no associated Employee profile");
+        }
+        Employee e = employeeRepository.findById(user.getEmployeeId())
+            .orElseThrow(() -> new com.dayflow.hrmtool.common.ResourceNotFoundException("Employee profile not found"));
+
         if (dto.getPhone() != null) e.setPhone(dto.getPhone());
         if (dto.getResidingAddress() != null) e.setResidingAddress(dto.getResidingAddress());
         if (dto.getProfilePictureUrl() != null) e.setProfilePictureUrl(dto.getProfilePictureUrl());
-        if (dto.getPersonalEmail() != null) e.setPersonalEmail(dto.getPersonalEmail());
-        
+
         employeeRepository.save(e);
-        return mapToProfileDto(e, true);
+        return mapToProfileDto(e, true, user.getRole() == Role.ADMIN);
     }
-    
+
     public EmployeeProfileDto updateAsAdmin(Long id, EmployeeAdminEditRequest dto) {
         Employee e = employeeRepository.findById(id).orElseThrow();
-        
+
         if (dto.getPhone() != null) e.setPhone(dto.getPhone());
         if (dto.getResidingAddress() != null) e.setResidingAddress(dto.getResidingAddress());
         if (dto.getProfilePictureUrl() != null) e.setProfilePictureUrl(dto.getProfilePictureUrl());
-        if (dto.getPersonalEmail() != null) e.setPersonalEmail(dto.getPersonalEmail());
         if (dto.getJobPosition() != null) e.setJobPosition(dto.getJobPosition());
         if (dto.getDepartment() != null) e.setDepartment(dto.getDepartment());
         if (dto.getManagerId() != null) e.setManagerId(dto.getManagerId());
         if (dto.getStatus() != null) e.setStatus(dto.getStatus());
-        
+
         employeeRepository.save(e);
-        return mapToProfileDto(e, true);
+        return mapToProfileDto(e, true, true);
     }
     
     public void updateStatus(Long id, EmployeeStatus status) {
@@ -191,17 +252,34 @@ public class EmployeeService {
         return StatusDot.YELLOW;
     }
     
-    private EmployeeProfileDto mapToProfileDto(Employee e, boolean includePrivate) {
+    private EmployeeProfileDto mapToProfileDto(Employee e, boolean includePrivate, boolean isAdmin) {
+        String loginId = appUserRepository.findByEmployeeId(e.getId())
+            .map(AppUser::getLoginId)
+            .orElse(null);
+
+        String managerName = null;
+        if (e.getManagerId() != null) {
+            managerName = employeeRepository.findById(e.getManagerId())
+                .map(m -> m.getFirstName() + " " + m.getLastName())
+                .orElse(null);
+        }
+
         EmployeeProfileDto.EmployeeProfileDtoBuilder builder = EmployeeProfileDto.builder()
             .id(e.getId())
+            .loginId(loginId)
             .firstName(e.getFirstName())
             .lastName(e.getLastName())
-            .workEmail(e.getWorkEmail())
-            .phone(e.getPhone())
             .jobPosition(e.getJobPosition())
             .department(e.getDepartment())
-            .profilePictureUrl(e.getProfilePictureUrl());
-            
+            .manager(managerName)
+            .location(e.getLocation())
+            .email(e.getWorkEmail())
+            .mobile(e.getPhone())
+            .profilePictureUrl(e.getProfilePictureUrl())
+            .status(e.getStatus())
+            .salaryVisible(includePrivate)
+            .salaryEditable(isAdmin);
+
         Resume resume = resumeRepository.findById(e.getId()).orElse(null);
         if (resume != null) {
             builder.resume(ResumeDto.builder()
@@ -210,7 +288,7 @@ public class EmployeeService {
                 .interestsAndHobbies(resume.getInterestsAndHobbies())
                 .build());
         }
-            
+
         if (includePrivate) {
             BankDetail bd = bankDetailRepository.findById(e.getId()).orElse(null);
             BankDetailDto bdDto = null;
@@ -219,17 +297,24 @@ public class EmployeeService {
                     .bankName(bd.getBankName())
                     .accountNumber(bd.getAccountNumber())
                     .ifscCode(bd.getIfscCode())
+                    .panNo(bd.getPanNo())
+                    .uanNo(bd.getUanNo())
+                    .empCode(bd.getEmpCode())
                     .build();
             }
-            
+
             builder.privateInfo(PrivateInfoDto.builder()
-                .personalEmail(e.getPersonalEmail())
-                .phone(e.getPhone())
+                .dateOfBirth(e.getDateOfBirth())
                 .residingAddress(e.getResidingAddress())
+                .nationality(e.getNationality())
+                .personalEmail(e.getPersonalEmail())
+                .gender(e.getGender() != null ? e.getGender().name() : null)
+                .maritalStatus(e.getMaritalStatus() != null ? e.getMaritalStatus().name() : null)
+                .dateOfJoining(e.getDateOfJoining())
                 .bankDetails(bdDto)
                 .build());
         }
-        
+
         return builder.build();
     }
 }

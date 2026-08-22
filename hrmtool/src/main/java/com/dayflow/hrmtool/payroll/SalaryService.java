@@ -21,31 +21,52 @@ public class SalaryService {
 
     public SalaryStructureDto getStructure(Long employeeId) {
         SalaryStructure structure = structureRepository.findById(employeeId)
-            .orElseThrow(() -> new RuntimeException("Structure not found"));
+            .orElseThrow(() -> new com.dayflow.hrmtool.common.ResourceNotFoundException("Structure not found"));
         List<SalaryComponent> components = componentRepository.findBySalaryStructureId(employeeId);
-        return new SalaryStructureDto(structure, components);
+        return toDto(structure, components);
     }
 
     @Transactional
     public SalaryStructureDto upsertStructure(Long employeeId, SalaryStructureRequest req, Long updatedBy) {
-        SalaryStructure structure = req.getStructure();
+        SalaryStructure structure = structureRepository.findById(employeeId).orElse(new SalaryStructure());
         structure.setEmployeeId(employeeId);
+        structure.setMonthlyWage(req.getMonthlyWage());
+        structure.setYearlyWage(req.getMonthlyWage() != null ? req.getMonthlyWage() * 12 : null);
+        structure.setWorkingDaysPerWeek(req.getWorkingDaysPerWeek());
+        structure.setBreakHours(req.getBreakHours());
+        structure.setPfEmployeePercent(req.getPfEmployeePercent());
+        structure.setPfEmployerPercent(req.getPfEmployerPercent());
+        structure.setProfessionalTax(req.getProfessionalTax());
         structure.setUpdatedAt(LocalDateTime.now());
         structure.setUpdatedBy(updatedBy);
-        
+
         List<SalaryComponent> components = req.getComponents();
         recomputeComponents(structure, components);
-        
+
         structure = structureRepository.save(structure);
-        
+
         for (SalaryComponent c : components) {
             c.setSalaryStructureId(employeeId);
         }
-        
+
         componentRepository.deleteBySalaryStructureId(employeeId);
         components = componentRepository.saveAll(components);
-        
-        return new SalaryStructureDto(structure, components);
+
+        return toDto(structure, components);
+    }
+
+    private SalaryStructureDto toDto(SalaryStructure structure, List<SalaryComponent> components) {
+        return SalaryStructureDto.builder()
+                .employeeId(structure.getEmployeeId())
+                .monthlyWage(structure.getMonthlyWage())
+                .yearlyWage(structure.getYearlyWage())
+                .workingDaysPerWeek(structure.getWorkingDaysPerWeek())
+                .breakHours(structure.getBreakHours())
+                .components(components)
+                .pfEmployeePercent(structure.getPfEmployeePercent())
+                .pfEmployerPercent(structure.getPfEmployerPercent())
+                .professionalTax(structure.getProfessionalTax())
+                .build();
     }
 
     public void recomputeComponents(SalaryStructure structure, List<SalaryComponent> components) {
@@ -84,16 +105,18 @@ public class SalaryService {
             }
         }
         
-        if (fixedAllowanceComponent != null) {
-            double fixedAllowanceAmount = wage - runningTotal;
-            if (fixedAllowanceAmount < 0) {
-                throw new RuntimeException("Fixed Allowance cannot be negative. Adjust percentages or wage.");
-            }
-            fixedAllowanceComponent.setComputedAmount(fixedAllowanceAmount);
-        } else {
-            if (wage < runningTotal) {
-                throw new RuntimeException("Total components exceed monthly wage.");
-            }
+        double fixedAllowanceAmount = wage - runningTotal;
+        if (fixedAllowanceAmount < 0) {
+            throw new RuntimeException("Total components exceed monthly wage.");
         }
+
+        if (fixedAllowanceComponent == null) {
+            fixedAllowanceComponent = new SalaryComponent();
+            fixedAllowanceComponent.setType(ComponentType.FIXED_ALLOWANCE);
+            fixedAllowanceComponent.setComputationType(ComputationType.FIXED);
+            components.add(fixedAllowanceComponent);
+        }
+        fixedAllowanceComponent.setValue(fixedAllowanceAmount);
+        fixedAllowanceComponent.setComputedAmount(fixedAllowanceAmount);
     }
 }

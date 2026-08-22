@@ -30,15 +30,14 @@ public class PayrollService {
 
     public PayslipDto generatePayslip(Long employeeId, int month, int year, Long generatedBy) {
         SalaryStructureDto structureDto = salaryService.getStructure(employeeId);
-        SalaryStructure structure = structureDto.getStructure();
         List<SalaryComponent> components = structureDto.getComponents();
-        
+
         double payableDays = attendanceService.getPayableDays(employeeId, month, year);
         double totalWorkingDays = attendanceService.getTotalWorkingDays(month, year);
-        
-        double monthlyWage = structure.getMonthlyWage() != null ? structure.getMonthlyWage() : 0.0;
+
+        double monthlyWage = structureDto.getMonthlyWage() != null ? structureDto.getMonthlyWage() : 0.0;
         double grossSalary = monthlyWage * (payableDays / totalWorkingDays);
-        
+
         double basicAmount = 0.0;
         for (SalaryComponent c : components) {
             if (c.getType() == ComponentType.BASIC) {
@@ -46,29 +45,34 @@ public class PayrollService {
                 break;
             }
         }
-        
-        double pfPercent = structure.getPfEmployeePercent() != null ? structure.getPfEmployeePercent() : 0.0;
+
+        double pfPercent = structureDto.getPfEmployeePercent() != null ? structureDto.getPfEmployeePercent() : 0.0;
         double pfEmployee = basicAmount * (pfPercent / 100.0);
-        double professionalTax = structure.getProfessionalTax() != null ? structure.getProfessionalTax() : 0.0;
-        
+        double professionalTax = structureDto.getProfessionalTax() != null ? structureDto.getProfessionalTax() : 0.0;
+
         double deductions = pfEmployee + professionalTax;
         double netSalary = grossSalary - deductions;
-        
+
         Payslip payslip = new Payslip();
         payslip.setEmployeeId(employeeId);
         payslip.setMonth(month);
         payslip.setYear(year);
+        payslip.setPayableDays(payableDays);
         payslip.setGrossSalary(grossSalary);
         payslip.setPfEmployee(pfEmployee);
         payslip.setProfessionalTax(professionalTax);
         payslip.setNetSalary(netSalary);
         payslip.setGeneratedBy(generatedBy);
         payslip.setGeneratedAt(LocalDateTime.now());
-        
+
         String employeeName = "Employee " + employeeId; // Mock name
+        SalaryStructure structure = new SalaryStructure();
+        structure.setMonthlyWage(structureDto.getMonthlyWage());
+        structure.setPfEmployeePercent(structureDto.getPfEmployeePercent());
+        structure.setProfessionalTax(structureDto.getProfessionalTax());
         String pdfPath = pdfService.generatePdfAndSave(payslip, structure, components, employeeName);
         payslip.setPdfPath(pdfPath);
-        
+
         payslip = payslipRepository.save(payslip);
         return mapToDto(payslip);
     }
@@ -83,12 +87,12 @@ public class PayrollService {
         return listMyPayslips(employeeId);
     }
     
-    public byte[] getPayslipPdf(Long payslipId, Long userId, Role role) {
+    public byte[] getPayslipPdf(Long payslipId, Long userId, com.dayflow.hrmtool.auth.Role role) {
         Payslip payslip = payslipRepository.findById(payslipId)
-                .orElseThrow(() -> new RuntimeException("Payslip not found"));
+                .orElseThrow(() -> new com.dayflow.hrmtool.common.ResourceNotFoundException("Payslip not found"));
         
-        if (role == Role.EMPLOYEE && !payslip.getEmployeeId().equals(userId)) {
-            throw new RuntimeException("Unauthorized");
+        if (role == com.dayflow.hrmtool.auth.Role.EMPLOYEE && !payslip.getEmployeeId().equals(userId)) {
+            throw new com.dayflow.hrmtool.common.AuthenticationException("Unauthorized");
         }
         
         try {
@@ -103,16 +107,19 @@ public class PayrollService {
     }
     
     private PayslipDto mapToDto(Payslip p) {
+        double pfEmployee = p.getPfEmployee() != null ? p.getPfEmployee() : 0.0;
+        double professionalTax = p.getProfessionalTax() != null ? p.getProfessionalTax() : 0.0;
+
         PayslipDto dto = new PayslipDto();
         dto.setId(p.getId());
         dto.setEmployeeId(p.getEmployeeId());
         dto.setMonth(p.getMonth());
         dto.setYear(p.getYear());
+        dto.setPayableDays(p.getPayableDays());
         dto.setGrossSalary(p.getGrossSalary());
-        dto.setPfEmployee(p.getPfEmployee());
-        dto.setProfessionalTax(p.getProfessionalTax());
+        dto.setTotalDeductions(pfEmployee + professionalTax);
         dto.setNetSalary(p.getNetSalary());
-        dto.setPdfPath(p.getPdfPath());
+        dto.setPdfUrl(p.getPdfPath());
         dto.setGeneratedAt(p.getGeneratedAt());
         return dto;
     }

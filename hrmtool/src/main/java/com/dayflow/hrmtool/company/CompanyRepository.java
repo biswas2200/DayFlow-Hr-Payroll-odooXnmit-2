@@ -8,4 +8,5 @@ import java.util.Optional;
 @Repository
 public interface CompanyRepository extends JpaRepository<Company, Long> {
     Optional<Company> findByInitials(String initials);
+    Optional<Company> findByNameIgnoreCase(String name);
 }

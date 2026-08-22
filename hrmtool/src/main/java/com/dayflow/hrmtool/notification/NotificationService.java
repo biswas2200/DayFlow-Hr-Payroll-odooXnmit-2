@@ -59,6 +59,7 @@ public class NotificationService {
         try {
             appUserRepository.findById(userId).ifPresent(user -> {
                 SimpleMailMessage message = new SimpleMailMessage();
+                message.setFrom("noreply@dayflow.local");
                 message.setTo(user.getEmail());
                 message.setSubject(notification.getTitle());
                 message.setText(notification.getMessage());

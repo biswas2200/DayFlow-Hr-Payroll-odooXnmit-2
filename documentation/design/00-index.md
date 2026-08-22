@@ -20,6 +20,7 @@ All diagrams are authored as [Mermaid](https://mermaid.js.org/) code blocks, whi
 | 7 | [Process Flows](07-process-flows.md) | Flowcharts: onboarding, first login, check-in/out, leave apply/approve, payable-days calc, payslip generation, salary auto-recalculation |
 | 8 | [Sequence Diagrams](08-sequence-diagrams.md) | Runtime call sequences for the 8 key flows across all modules |
 | 9 | [API Documentation](09-api-documentation.md) | Endpoint reference table + full OpenAPI 3.0 spec (Swagger-ready) |
+| 10 | [Class Diagram](10-class-diagram.md) | Unified UML class diagram of the final, implemented backend domain model |
 
 ## Reading order
 

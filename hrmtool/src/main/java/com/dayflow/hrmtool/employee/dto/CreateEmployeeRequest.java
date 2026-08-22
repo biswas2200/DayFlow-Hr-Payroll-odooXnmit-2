@@ -6,6 +6,9 @@ import lombok.Data;
 
 @Data
 public class CreateEmployeeRequest {
+    private String companyName;
+    private String companyLogoUrl;
+
     @NotBlank
     private String firstName;
     @NotBlank

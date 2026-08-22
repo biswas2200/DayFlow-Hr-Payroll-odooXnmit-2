@@ -122,7 +122,8 @@ documentation/
     ├── 06-dfd.md                   ← Data Flow Diagrams (Level 0/1/2)
     ├── 07-process-flows.md         ← Flowcharts for onboarding, leave, payroll, attendance
     ├── 08-sequence-diagrams.md     ← Sequence diagrams for every key interaction
-    └── 09-api-documentation.md     ← REST endpoint reference + full OpenAPI 3.0 spec
+    ├── 09-api-documentation.md     ← REST endpoint reference + full OpenAPI 3.0 spec
+    └── 10-class-diagram.md         ← Unified UML class diagram of the implemented domain model
 ```
 
 **Where to look, depending on what you're doing:**
@@ -145,3 +146,18 @@ cd hrmtool
 ```
 
 The Spring Boot application skeleton lives in `hrmtool/`; see [`documentation/design/03-lld.md`](documentation/design/03-lld.md#1-backend-package-structure) for the package layout as modules are implemented.
+
+### Local email (MailDev)
+
+Outgoing mail (account-provisioning emails with the Login ID/temp password,
+leave-decision notifications, etc.) is sent via SMTP through
+[MailDev](https://github.com/maildev/maildev) in local development — no real
+mail provider is contacted. Run it with:
+
+```bash
+docker run -d --name mail-dev -p 1025:1025 -p 1080:1080 maildev/maildev
+```
+
+The backend's default `spring.mail.host`/`port` (`application.yaml`) point at
+`localhost:1025`. Sent mail can be viewed in MailDev's web UI at
+[http://localhost:1080](http://localhost:1080).

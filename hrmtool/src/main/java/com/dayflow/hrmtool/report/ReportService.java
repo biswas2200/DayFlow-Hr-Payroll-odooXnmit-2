@@ -9,7 +9,7 @@ import com.dayflow.hrmtool.employee.Employee;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -42,9 +42,11 @@ public class ReportService {
         Map<String, Long> headcount = employees.stream()
             .filter(e -> e.getDepartment() != null)
             .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.counting()));
-        summary.setHeadcountByDepartment(headcount);
-        
-        summary.setLeaveTrends(new HashMap<>()); // Placeholder for leave trends
+        summary.setHeadcountByDepartment(headcount.entrySet().stream()
+            .map(e -> new DashboardSummaryDto.DepartmentCount(e.getKey(), e.getValue()))
+            .collect(Collectors.toList()));
+
+        summary.setLeaveTrends(new ArrayList<>()); // Placeholder for leave trends
         
         return summary;
     }

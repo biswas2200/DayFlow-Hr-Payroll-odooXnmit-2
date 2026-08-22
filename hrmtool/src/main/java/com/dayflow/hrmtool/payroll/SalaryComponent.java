@@ -20,6 +20,7 @@ public class SalaryComponent {
     @Enumerated(EnumType.STRING)
     private ComputationType computationType;
     
+    @jakarta.persistence.Column(name = "component_value")
     private Double value;
     private Double computedAmount;
 

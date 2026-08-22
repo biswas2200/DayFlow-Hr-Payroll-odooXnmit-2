@@ -7,11 +7,11 @@ public class PayslipDto {
     private Long employeeId;
     private Integer month;
     private Integer year;
+    private Double payableDays;
     private Double grossSalary;
-    private Double pfEmployee;
-    private Double professionalTax;
+    private Double totalDeductions;
     private Double netSalary;
-    private String pdfPath;
+    private String pdfUrl;
     private LocalDateTime generatedAt;
 
     // Getters and Setters
@@ -23,16 +23,16 @@ public class PayslipDto {
     public void setMonth(Integer month) { this.month = month; }
     public Integer getYear() { return year; }
     public void setYear(Integer year) { this.year = year; }
+    public Double getPayableDays() { return payableDays; }
+    public void setPayableDays(Double payableDays) { this.payableDays = payableDays; }
     public Double getGrossSalary() { return grossSalary; }
     public void setGrossSalary(Double grossSalary) { this.grossSalary = grossSalary; }
-    public Double getPfEmployee() { return pfEmployee; }
-    public void setPfEmployee(Double pfEmployee) { this.pfEmployee = pfEmployee; }
-    public Double getProfessionalTax() { return professionalTax; }
-    public void setProfessionalTax(Double professionalTax) { this.professionalTax = professionalTax; }
+    public Double getTotalDeductions() { return totalDeductions; }
+    public void setTotalDeductions(Double totalDeductions) { this.totalDeductions = totalDeductions; }
     public Double getNetSalary() { return netSalary; }
     public void setNetSalary(Double netSalary) { this.netSalary = netSalary; }
-    public String getPdfPath() { return pdfPath; }
-    public void setPdfPath(String pdfPath) { this.pdfPath = pdfPath; }
+    public String getPdfUrl() { return pdfUrl; }
+    public void setPdfUrl(String pdfUrl) { this.pdfUrl = pdfUrl; }
     public LocalDateTime getGeneratedAt() { return generatedAt; }
     public void setGeneratedAt(LocalDateTime generatedAt) { this.generatedAt = generatedAt; }
 }

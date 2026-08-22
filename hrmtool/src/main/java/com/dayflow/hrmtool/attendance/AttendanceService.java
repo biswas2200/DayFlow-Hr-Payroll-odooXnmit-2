@@ -3,6 +3,8 @@ package com.dayflow.hrmtool.attendance;
 import com.dayflow.hrmtool.attendance.dto.AttendanceDto;
 import com.dayflow.hrmtool.attendance.dto.AttendanceRowDto;
 import com.dayflow.hrmtool.attendance.dto.AttendanceSummaryDto;
+import com.dayflow.hrmtool.employee.Employee;
+import com.dayflow.hrmtool.employee.EmployeeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -12,6 +14,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,6 +23,7 @@ import java.util.stream.Collectors;
 public class AttendanceService {
 
     private final AttendanceRepository attendanceRepository;
+    private final EmployeeRepository employeeRepository;
     
     public AttendanceDto checkIn(Long employeeId) {
         LocalDate today = LocalDate.now();
@@ -92,9 +96,33 @@ public class AttendanceService {
                 .build();
     }
     
-    public List<AttendanceRowDto> getForDate(LocalDate date, String search, Pageable pageable) {
-        // Implement complex search and mapping logic here
-        return List.of(); 
+    public List<AttendanceRowDto> getForDate(Long companyId, LocalDate date, String search, Pageable pageable) {
+        List<Employee> employees = (search != null && !search.trim().isEmpty())
+                ? employeeRepository.searchDirectory(companyId, search, Pageable.unpaged()).getContent()
+                : employeeRepository.findByCompanyId(companyId);
+
+        List<Long> employeeIds = employees.stream().map(Employee::getId).collect(Collectors.toList());
+        Map<Long, Attendance> attendanceByEmployee = attendanceRepository.findByDateAndEmployeeIdIn(date, employeeIds).stream()
+                .collect(Collectors.toMap(Attendance::getEmployeeId, a -> a));
+
+        List<AttendanceRowDto> rows = employees.stream().map(e -> {
+            Attendance a = attendanceByEmployee.get(e.getId());
+            return AttendanceRowDto.builder()
+                    .id(a != null ? a.getId() : null)
+                    .date(date)
+                    .checkInTime(a != null ? a.getCheckInTime() : null)
+                    .checkOutTime(a != null ? a.getCheckOutTime() : null)
+                    .workHours(a != null ? formatMinutes(a.getWorkHours()) : "00:00")
+                    .extraHours(a != null ? formatMinutes(a.getExtraHours()) : "00:00")
+                    .status(a != null ? a.getStatus() : AttendanceStatus.ABSENT)
+                    .employeeId(e.getId())
+                    .employeeName(e.getFirstName() + " " + e.getLastName())
+                    .build();
+        }).collect(Collectors.toList());
+
+        int start = Math.min((int) pageable.getOffset(), rows.size());
+        int end = Math.min(start + (pageable.isPaged() ? pageable.getPageSize() : rows.size()), rows.size());
+        return rows.subList(start, end);
     }
     
     public int getPayableDays(Long employeeId, int month, int year) {
@@ -107,21 +135,21 @@ public class AttendanceService {
     }
     
     private AttendanceDto mapToDto(Attendance attendance) {
-        String workHoursStr = "00:00";
-        if (attendance.getWorkHours() != null) {
-            long hours = attendance.getWorkHours() / 60;
-            long mins = attendance.getWorkHours() % 60;
-            workHoursStr = String.format("%02d:%02d", hours, mins);
-        }
-        
         return AttendanceDto.builder()
                 .id(attendance.getId())
                 .date(attendance.getDate())
                 .checkInTime(attendance.getCheckInTime())
                 .checkOutTime(attendance.getCheckOutTime())
-                .workHours(workHoursStr)
-                .extraHours(attendance.getExtraHours())
+                .workHours(formatMinutes(attendance.getWorkHours()))
+                .extraHours(formatMinutes(attendance.getExtraHours()))
                 .status(attendance.getStatus())
                 .build();
+    }
+
+    private String formatMinutes(Long minutes) {
+        if (minutes == null) return "00:00";
+        long hours = minutes / 60;
+        long mins = minutes % 60;
+        return String.format("%02d:%02d", hours, mins);
     }
 }

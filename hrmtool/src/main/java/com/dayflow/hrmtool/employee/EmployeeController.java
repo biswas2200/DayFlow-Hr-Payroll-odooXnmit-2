@@ -7,8 +7,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.dayflow.hrmtool.auth.AppUser;
 
 @RestController
 @RequestMapping("/api/v1/employees")
@@ -17,53 +21,65 @@ public class EmployeeController {
 
     private final EmployeeService employeeService;
     
-    @PostMapping("/")
+    private Long resolveCompanyId(AppUser currentUser) {
+        Long empId = currentUser.getEmployeeId();
+        if (empId == null) {
+            throw new com.dayflow.hrmtool.common.ResourceNotFoundException("Admin has no associated Employee profile");
+        }
+        return employeeService.getCompanyIdForEmployee(empId);
+    }
+
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EmployeeResponse> createEmployee(@Valid @RequestBody CreateEmployeeRequest request,
-                                                           @RequestAttribute("companyId") Long companyId,
-                                                           @RequestAttribute("userId") Long userId) {
-        return ResponseEntity.ok(employeeService.createEmployee(request, companyId, userId));
+                                                           @RequestParam(required = false) Long companyId,
+                                                           @AuthenticationPrincipal AppUser currentUser) {
+        Long resolvedCompanyId = companyId != null ? companyId : resolveCompanyId(currentUser);
+        return ResponseEntity.ok(employeeService.createEmployee(request, resolvedCompanyId, currentUser.getId()));
     }
     
-    @GetMapping("/")
+    @GetMapping
     public ResponseEntity<Page<EmployeeCardDto>> getDirectory(
-            @RequestAttribute("companyId") Long companyId,
+            @AuthenticationPrincipal AppUser currentUser,
             @RequestParam(required = false) String search,
             Pageable pageable) {
+        Long companyId = resolveCompanyId(currentUser);
         return ResponseEntity.ok(employeeService.getDirectory(companyId, search, pageable));
     }
     
     @GetMapping("/me")
-    public ResponseEntity<EmployeeProfileDto> getMyProfile(@RequestAttribute("userId") Long userId) {
-        return ResponseEntity.ok(employeeService.getMyProfile(userId));
+    public ResponseEntity<EmployeeProfileDto> getMyProfile(@AuthenticationPrincipal AppUser currentUser) {
+        return ResponseEntity.ok(employeeService.getMyProfile(currentUser.getId()));
     }
     
     @PutMapping("/me")
     public ResponseEntity<EmployeeProfileDto> updateOwnProfile(
-            @RequestAttribute("userId") Long userId,
+            @AuthenticationPrincipal AppUser currentUser,
             @RequestBody EmployeeSelfEditRequest request) {
-        return ResponseEntity.ok(employeeService.updateOwnProfile(userId, request));
+        return ResponseEntity.ok(employeeService.updateOwnProfile(currentUser.getId(), request));
     }
     
     @PostMapping("/me/photo")
-    public ResponseEntity<Void> uploadPhoto(@RequestAttribute("userId") Long userId, 
+    public ResponseEntity<Void> uploadPhoto(@AuthenticationPrincipal AppUser currentUser, 
                                             @RequestParam("file") MultipartFile file) {
         return ResponseEntity.ok().build();
     }
     
     @GetMapping("/{id}")
     public ResponseEntity<EmployeeProfileDto> getById(@PathVariable Long id, 
-                                                      @RequestAttribute("userId") Long viewerId,
-                                                      @RequestAttribute("role") Role role) {
-        return ResponseEntity.ok(employeeService.getById(id, viewerId, role));
+                                                      @AuthenticationPrincipal AppUser currentUser) {
+        return ResponseEntity.ok(employeeService.getById(id, currentUser.getId(), currentUser.getRole()));
     }
     
     @PutMapping("/{id}")
-    public ResponseEntity<EmployeeProfileDto> updateAsAdmin(@PathVariable Long id, 
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<EmployeeProfileDto> updateAsAdmin(@PathVariable Long id,
                                                             @RequestBody EmployeeAdminEditRequest request) {
         return ResponseEntity.ok(employeeService.updateAsAdmin(id, request));
     }
-    
+
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> updateStatus(@PathVariable Long id, @RequestBody StatusUpdateRequest request) {
         employeeService.updateStatus(id, request.getStatus());
         return ResponseEntity.ok().build();

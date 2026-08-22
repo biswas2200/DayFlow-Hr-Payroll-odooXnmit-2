@@ -9,5 +9,5 @@ public class LeaveBalanceDto {
     private String leaveTypeName;
     private BigDecimal allocatedDays;
     private BigDecimal usedDays;
-    private BigDecimal remainingDays;
+    private BigDecimal availableDays;
 }

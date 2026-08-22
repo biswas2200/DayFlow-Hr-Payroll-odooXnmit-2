@@ -17,11 +17,15 @@ public class Payslip {
     private Long generatedBy;
     private LocalDateTime generatedAt;
     
+    private Double payableDays;
     private Double grossSalary;
     private Double pfEmployee;
     private Double professionalTax;
     private Double netSalary;
     private String pdfPath;
+
+    public Double getPayableDays() { return payableDays; }
+    public void setPayableDays(Double payableDays) { this.payableDays = payableDays; }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

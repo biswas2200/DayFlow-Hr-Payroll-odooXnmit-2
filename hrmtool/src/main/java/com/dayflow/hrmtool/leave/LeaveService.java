@@ -1,11 +1,13 @@
 package com.dayflow.hrmtool.leave;
 
+import com.dayflow.hrmtool.employee.EmployeeRepository;
 import com.dayflow.hrmtool.leave.dto.*;
 import com.dayflow.hrmtool.leave.event.LeaveAppliedEvent;
 import com.dayflow.hrmtool.leave.event.LeaveDecidedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +26,7 @@ public class LeaveService {
     private final LeaveAllocationRepository leaveAllocationRepository;
     private final LeaveTypeRepository leaveTypeRepository;
     private final PublicHolidayRepository publicHolidayRepository;
+    private final EmployeeRepository employeeRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     public List<LeaveTypeDto> listTypes(Long companyId) {
@@ -48,7 +51,7 @@ public class LeaveService {
             types.stream().filter(t -> t.getId().equals(allocation.getLeaveTypeId())).findFirst().ifPresent(t -> dto.setLeaveTypeName(t.getName()));
             dto.setAllocatedDays(allocation.getAllocatedDays());
             dto.setUsedDays(allocation.getUsedDays());
-            dto.setRemainingDays(allocation.getAllocatedDays().subtract(allocation.getUsedDays()));
+            dto.setAvailableDays(allocation.getAllocatedDays().subtract(allocation.getUsedDays()));
             return dto;
         }).collect(Collectors.toList());
     }
@@ -56,16 +59,16 @@ public class LeaveService {
     @Transactional
     public LeaveRequestDto apply(Long employeeId, Long companyId, ApplyLeaveRequest req) {
         LeaveType type = leaveTypeRepository.findById(req.getLeaveTypeId())
-                .orElseThrow(() -> new IllegalArgumentException("Leave Type not found"));
+                .orElseThrow(() -> new com.dayflow.hrmtool.common.ResourceNotFoundException("Leave Type not found"));
 
         if (type.isPaid()) {
             LeaveAllocation allocation = leaveAllocationRepository.findByEmployeeIdAndLeaveTypeIdAndYear(
                     employeeId, req.getLeaveTypeId(), req.getStartDate().getYear()
-            ).orElseThrow(() -> new IllegalStateException("Leave Allocation not found for this paid type."));
+            ).orElseThrow(() -> new com.dayflow.hrmtool.common.ResourceNotFoundException("Leave Allocation not found for this paid type."));
 
             BigDecimal remaining = allocation.getAllocatedDays().subtract(allocation.getUsedDays());
             if (remaining.compareTo(req.getNumDays()) < 0) {
-                throw new IllegalStateException("Insufficient leave balance."); // Equivalent to BusinessException
+                throw new com.dayflow.hrmtool.common.BusinessException("Insufficient leave balance.");
             }
         }
 
@@ -105,8 +108,9 @@ public class LeaveService {
                 }).collect(Collectors.toList());
 
         LeaveCalendarDto dto = new LeaveCalendarDto();
+        dto.setYear(year);
         dto.setRequests(requests);
-        dto.setHolidays(holidays);
+        dto.setPublicHolidays(holidays);
         return dto;
     }
 
@@ -114,10 +118,19 @@ public class LeaveService {
         return leaveRequestRepository.findByStatus(status, pageable).map(this::toDto);
     }
 
+    /** Convenience overload used by the REST controller. */
+    public Page<LeaveRequestDto> listAllForApproval(LeaveStatus status, int page) {
+        Pageable pageable = PageRequest.of(page, 20);
+        if (status != null) {
+            return leaveRequestRepository.findByStatus(status, pageable).map(this::toDto);
+        }
+        return leaveRequestRepository.findAll(pageable).map(this::toDto);
+    }
+
     @Transactional
     public void approve(Long requestId, Long approverId, String comment) {
         LeaveRequest request = leaveRequestRepository.findById(requestId)
-                .orElseThrow(() -> new IllegalArgumentException("Leave Request not found"));
+                .orElseThrow(() -> new com.dayflow.hrmtool.common.ResourceNotFoundException("Leave Request not found"));
 
         request.setStatus(LeaveStatus.APPROVED);
         request.setApproverId(approverId);
@@ -125,7 +138,7 @@ public class LeaveService {
         request.setDecidedAt(Instant.now());
 
         LeaveType type = leaveTypeRepository.findById(request.getLeaveTypeId())
-                .orElseThrow(() -> new IllegalArgumentException("Leave Type not found"));
+                .orElseThrow(() -> new com.dayflow.hrmtool.common.ResourceNotFoundException("Leave Type not found"));
 
         if (type.isPaid()) {
             LeaveAllocation allocation = leaveAllocationRepository.findByEmployeeIdAndLeaveTypeIdAndYear(
@@ -146,7 +159,7 @@ public class LeaveService {
     @Transactional
     public void reject(Long requestId, Long approverId, String comment) {
         LeaveRequest request = leaveRequestRepository.findById(requestId)
-                .orElseThrow(() -> new IllegalArgumentException("Leave Request not found"));
+                .orElseThrow(() -> new com.dayflow.hrmtool.common.ResourceNotFoundException("Leave Request not found"));
 
         request.setStatus(LeaveStatus.REJECTED);
         request.setApproverId(approverId);
@@ -160,11 +173,13 @@ public class LeaveService {
     }
 
     public List<LeaveAllocationDto> getAllocation(Long employeeId, Long companyId, int year) {
+        List<LeaveType> types = leaveTypeRepository.findByCompanyId(companyId);
         return leaveAllocationRepository.findByEmployeeIdAndYear(employeeId, year).stream().map(a -> {
             LeaveAllocationDto dto = new LeaveAllocationDto();
             dto.setId(a.getId());
             dto.setEmployeeId(a.getEmployeeId());
             dto.setLeaveTypeId(a.getLeaveTypeId());
+            types.stream().filter(t -> t.getId().equals(a.getLeaveTypeId())).findFirst().ifPresent(t -> dto.setLeaveTypeName(t.getName()));
             dto.setYear(a.getYear());
             dto.setAllocatedDays(a.getAllocatedDays());
             dto.setUsedDays(a.getUsedDays());
@@ -191,6 +206,7 @@ public class LeaveService {
             d.setId(a.getId());
             d.setEmployeeId(a.getEmployeeId());
             d.setLeaveTypeId(a.getLeaveTypeId());
+            leaveTypeRepository.findById(a.getLeaveTypeId()).ifPresent(t -> d.setLeaveTypeName(t.getName()));
             d.setYear(a.getYear());
             d.setAllocatedDays(a.getAllocatedDays());
             d.setUsedDays(a.getUsedDays());
@@ -214,7 +230,11 @@ public class LeaveService {
         LeaveRequestDto dto = new LeaveRequestDto();
         dto.setId(request.getId());
         dto.setEmployeeId(request.getEmployeeId());
+        employeeRepository.findById(request.getEmployeeId())
+                .ifPresent(e -> dto.setEmployeeName(e.getFirstName() + " " + e.getLastName()));
         dto.setLeaveTypeId(request.getLeaveTypeId());
+        leaveTypeRepository.findById(request.getLeaveTypeId())
+                .ifPresent(t -> dto.setLeaveType(t.getName()));
         dto.setStartDate(request.getStartDate());
         dto.setEndDate(request.getEndDate());
         dto.setNumDays(request.getNumDays());

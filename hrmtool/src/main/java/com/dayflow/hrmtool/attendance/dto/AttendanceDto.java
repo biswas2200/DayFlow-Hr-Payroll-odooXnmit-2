@@ -15,6 +15,6 @@ public class AttendanceDto {
     private LocalTime checkInTime;
     private LocalTime checkOutTime;
     private String workHours;
-    private Long extraHours;
+    private String extraHours;
     private AttendanceStatus status;
 }

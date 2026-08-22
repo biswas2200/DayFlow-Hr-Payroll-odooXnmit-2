@@ -27,3 +27,5 @@ build/
 
 ### Dev-generated dumps (not covered by root) ###
 endpoints_list.txt
+result.md
+fixes.md
