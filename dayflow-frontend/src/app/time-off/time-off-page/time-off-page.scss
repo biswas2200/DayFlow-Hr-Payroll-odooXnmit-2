@@ -1,0 +1,71 @@
+.toolbar {
+  margin-bottom: 1rem;
+
+  select {
+    padding: 0.45em 0.8em;
+    border: 1px solid var(--dt-border);
+    border-radius: var(--dt-radius);
+  }
+}
+
+.approval-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.comment-input {
+  padding: 0.3em 0.6em;
+  border: 1px solid var(--dt-border);
+  border-radius: var(--dt-radius);
+  font-size: 0.82rem;
+  width: 160px;
+}
+
+.balance-row {
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.balance-card {
+  padding: 1rem 1.5rem;
+  min-width: 200px;
+}
+
+.balance-type {
+  color: var(--df-primary);
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.balance-days {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.apply-form {
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 1.5rem;
+}
+
+.holiday-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  li {
+    padding: 0.35rem 0;
+    border-bottom: 1px solid var(--dt-border);
+    font-size: 0.88rem;
+  }
+}
+
+h4 {
+  margin-top: 1.5rem;
+}

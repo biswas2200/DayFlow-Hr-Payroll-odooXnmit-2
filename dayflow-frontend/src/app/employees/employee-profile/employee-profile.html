@@ -1,0 +1,304 @@
+<div class="page">
+  @if (loading()) {
+    <p class="text-muted">Loading…</p>
+  } @else if (profile(); as p) {
+    <div class="profile-header card">
+      @if (p.profilePictureUrl) {
+        <img class="avatar-lg" [src]="p.profilePictureUrl" [alt]="p.firstName" />
+      } @else {
+        <div class="avatar-lg avatar-fallback">{{ p.firstName.charAt(0) }}</div>
+      }
+      <div class="identity">
+        <h2>{{ p.firstName }} {{ p.lastName }}</h2>
+        <p class="text-muted">{{ p.jobPosition || '—' }} · {{ p.department || '—' }}</p>
+        <p class="text-muted small">Login ID: {{ p.loginId }} · {{ p.email }}</p>
+      </div>
+      <div class="spacer"></div>
+      @if (!editMode() && canEdit()) {
+        <button class="btn btn-secondary" (click)="enterEditMode()">Edit</button>
+      }
+      @if (!isMe() && !canEdit()) {
+        <span class="badge badge-muted">View only</span>
+      }
+    </div>
+
+    @if (forcedSecurity()) {
+      <div class="card banner">
+        You're using a temporary password. Please set a new password below before continuing.
+      </div>
+    }
+
+    <div class="tabs">
+      <div class="tab" [class.active]="activeTab() === 'resume'" (click)="setTab('resume')">Resume</div>
+      <div class="tab" [class.active]="activeTab() === 'private'" (click)="setTab('private')">Private Info</div>
+      @if (p.salaryVisible) {
+        <div class="tab" [class.active]="activeTab() === 'salary'" (click)="setTab('salary')">Salary Info</div>
+      }
+      @if (isMe()) {
+        <div class="tab" [class.active]="activeTab() === 'security'" (click)="setTab('security')">Security</div>
+      }
+    </div>
+
+    @if (saveMessage()) {
+      <p class="save-message">{{ saveMessage() }}</p>
+    }
+
+    <!-- Resume tab -->
+    @if (activeTab() === 'resume') {
+      <form class="card tab-panel" [formGroup]="resumeForm" (ngSubmit)="saveResume()">
+        <div class="field">
+          <label>About</label>
+          <textarea rows="3" formControlName="about" [attr.disabled]="!editMode() || null"></textarea>
+        </div>
+        <div class="field">
+          <label>What I Love About My Job</label>
+          <textarea rows="3" formControlName="whatILoveAboutMyJob" [attr.disabled]="!editMode() || null"></textarea>
+        </div>
+        <div class="field">
+          <label>My Interests and Hobbies</label>
+          <textarea rows="3" formControlName="interestsAndHobbies" [attr.disabled]="!editMode() || null"></textarea>
+        </div>
+
+        <div class="row">
+          <div class="field" style="flex:1">
+            <label>Skills</label>
+            <div class="chip-list">
+              @for (skill of skills(); track skill; let i = $index) {
+                <span class="chip">
+                  {{ skill }}
+                  @if (editMode()) {
+                    <button type="button" (click)="removeSkill(i)">×</button>
+                  }
+                </span>
+              }
+            </div>
+            @if (editMode()) {
+              <div class="add-row">
+                <input type="text" [ngModel]="newSkill()" (ngModelChange)="newSkill.set($event)" [ngModelOptions]="{standalone: true}" placeholder="Add skill" />
+                <button type="button" class="btn btn-secondary btn-sm" (click)="addSkill()">+ Add</button>
+              </div>
+            }
+          </div>
+
+          <div class="field" style="flex:1">
+            <label>Certifications</label>
+            @for (cert of certifications(); track cert.name) {
+              <div class="cert-row text-muted">{{ cert.name }} — {{ cert.issuer }} ({{ cert.issueDate }})</div>
+            }
+            @if (certifications().length === 0) {
+              <p class="text-muted small">No certifications added.</p>
+            }
+          </div>
+        </div>
+
+        @if (editMode()) {
+          <button type="submit" class="btn btn-primary" [disabled]="saving()">Save Resume</button>
+        }
+      </form>
+    }
+
+    <!-- Private Info tab -->
+    @if (activeTab() === 'private') {
+      <form class="card tab-panel" [formGroup]="privateForm" (ngSubmit)="savePrivateInfo()">
+        <div class="grid-2">
+          <div class="field">
+            <label>Date of Birth</label>
+            <input type="date" formControlName="dateOfBirth" [attr.disabled]="!editMode() || null" />
+          </div>
+          <div class="field">
+            <label>Residing Address</label>
+            <input type="text" formControlName="residingAddress" [attr.disabled]="!editMode() || null" />
+          </div>
+          <div class="field">
+            <label>Nationality</label>
+            <input type="text" formControlName="nationality" [attr.disabled]="!editMode() || null" />
+          </div>
+          <div class="field">
+            <label>Personal Email</label>
+            <input type="email" formControlName="personalEmail" [attr.disabled]="!editMode() || null" />
+          </div>
+          <div class="field">
+            <label>Gender</label>
+            <select formControlName="gender" [attr.disabled]="!editMode() || null">
+              <option value="">—</option>
+              <option value="MALE">Male</option>
+              <option value="FEMALE">Female</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Marital Status</label>
+            <select formControlName="maritalStatus" [attr.disabled]="!editMode() || null">
+              <option value="">—</option>
+              <option value="SINGLE">Single</option>
+              <option value="MARRIED">Married</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Mobile</label>
+            <input type="tel" formControlName="phone" [attr.disabled]="!editMode() || null" />
+          </div>
+        </div>
+
+        <h4>Bank Details</h4>
+        <div class="grid-2">
+          <div class="field">
+            <label>Account Number</label>
+            <input type="text" formControlName="accountNumber" [attr.disabled]="!editMode() || null" />
+          </div>
+          <div class="field">
+            <label>Bank Name</label>
+            <input type="text" formControlName="bankName" [attr.disabled]="!editMode() || null" />
+          </div>
+          <div class="field">
+            <label>IFSC Code</label>
+            <input type="text" formControlName="ifscCode" [attr.disabled]="!editMode() || null" />
+          </div>
+          <div class="field">
+            <label>PAN No</label>
+            <input type="text" formControlName="panNo" [attr.disabled]="!editMode() || null" />
+          </div>
+          <div class="field">
+            <label>UAN No</label>
+            <input type="text" formControlName="uanNo" [attr.disabled]="!editMode() || null" />
+          </div>
+        </div>
+
+        @if (editMode()) {
+          <button type="submit" class="btn btn-primary" [disabled]="saving()">Save Private Info</button>
+        }
+      </form>
+    }
+
+    <!-- Salary Info tab -->
+    @if (activeTab() === 'salary' && p.salaryVisible) {
+      <form class="card tab-panel" [formGroup]="salaryForm" (ngSubmit)="saveSalary()">
+        @if (!p.salaryEditable) {
+          <p class="badge badge-muted">Read-only — only Admin can edit salary</p>
+        }
+
+        <div class="grid-2">
+          <div class="field">
+            <label>Monthly Wage (₹)</label>
+            <input type="number" formControlName="monthlyWage" />
+          </div>
+          <div class="field">
+            <label>Yearly Wage (₹, derived)</label>
+            <input type="text" [value]="(salaryForm.controls.monthlyWage.value || 0) * 12" disabled />
+          </div>
+          <div class="field">
+            <label>Working Days / Week</label>
+            <input type="number" formControlName="workingDaysPerWeek" />
+          </div>
+          <div class="field">
+            <label>Break Time (hrs)</label>
+            <input type="number" formControlName="breakHours" />
+          </div>
+        </div>
+
+        <h4>Salary Components</h4>
+        <div formArrayName="components" class="stack">
+          @for (comp of componentsArray.controls; track $index; let i = $index) {
+            <div class="row component-row" [formGroupName]="i">
+              <span class="comp-label">{{ comp.value.type }}</span>
+              <select formControlName="computationType">
+                <option value="FIXED">Fixed Amount</option>
+                <option value="PERCENTAGE">% of {{ comp.value.type === 'BASIC' ? 'Wage' : 'Basic' }}</option>
+              </select>
+              <input type="number" formControlName="value" />
+              <span class="computed-amount text-muted">
+                = ₹{{ amountFor(comp.value.type) | number: '1.2-2' }}/month
+              </span>
+            </div>
+          }
+          <div class="row component-row">
+            <span class="comp-label">FIXED_ALLOWANCE</span>
+            <span class="text-muted">absorbs remainder</span>
+            <span class="computed-amount" [class.error]="computedAmounts().exceeds">
+              = ₹{{ computedAmounts().fixedAllowance | number: '1.2-2' }}/month
+            </span>
+          </div>
+        </div>
+
+        @if (computedAmounts().exceeds) {
+          <p class="error">Components exceed the wage — Fixed Allowance would be negative.</p>
+        }
+
+        <h4>Provident Fund &amp; Tax</h4>
+        <div class="grid-2">
+          <div class="field">
+            <label>PF — Employee %</label>
+            <input type="number" formControlName="pfEmployeePercent" />
+          </div>
+          <div class="field">
+            <label>PF — Employer %</label>
+            <input type="number" formControlName="pfEmployerPercent" />
+          </div>
+          <div class="field">
+            <label>Professional Tax (₹/month)</label>
+            <input type="number" formControlName="professionalTax" />
+          </div>
+        </div>
+
+        @if (p.salaryEditable) {
+          <button type="submit" class="btn btn-primary" [disabled]="saving() || computedAmounts().exceeds">
+            Save Salary Structure
+          </button>
+        }
+
+        <h4>Payslips</h4>
+        @if (p.salaryEditable) {
+          <button type="button" class="btn btn-secondary btn-sm" (click)="generatePayslip()">
+            Generate Payslip (this month)
+          </button>
+        }
+        <table class="dt-table">
+          <thead>
+            <tr>
+              <th>Month/Year</th>
+              <th>Payable Days</th>
+              <th>Gross</th>
+              <th>Net</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (slip of payslips(); track slip.id) {
+              <tr>
+                <td>{{ slip.month }}/{{ slip.year }}</td>
+                <td>{{ slip.payableDays }}</td>
+                <td>₹{{ slip.grossSalary | number: '1.2-2' }}</td>
+                <td>₹{{ slip.netSalary | number: '1.2-2' }}</td>
+                <td><button type="button" class="btn btn-secondary btn-sm" (click)="downloadPayslip(slip.id)">Download</button></td>
+              </tr>
+            } @empty {
+              <tr><td colspan="5" class="text-muted">No payslips generated yet.</td></tr>
+            }
+          </tbody>
+        </table>
+      </form>
+    }
+
+    <!-- Security tab -->
+    @if (activeTab() === 'security' && isMe()) {
+      <form class="card tab-panel narrow" [formGroup]="securityForm" (ngSubmit)="changePassword()">
+        <div class="field">
+          <label>Current Password</label>
+          <input type="password" formControlName="currentPassword" />
+        </div>
+        <div class="field">
+          <label>New Password</label>
+          <input type="password" formControlName="newPassword" />
+        </div>
+        <div class="field">
+          <label>Confirm New Password</label>
+          <input type="password" formControlName="confirmPassword" />
+        </div>
+        @if (securityMessage()) {
+          <p [class.error]="securityMessage()!.includes('Could not')">{{ securityMessage() }}</p>
+        }
+        <button type="submit" class="btn btn-primary">Change Password</button>
+      </form>
+    }
+  }
+</div>

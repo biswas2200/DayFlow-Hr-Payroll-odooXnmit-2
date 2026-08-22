@@ -25,11 +25,6 @@ skills-lock.json
 # --- Logs ---
 *.log
 
-# --- Angular frontend (WIP — not ready to commit yet) ---
-# Remove this line once the frontend is ready to be tracked; until then the
-# whole directory (including its own node_modules/, dist/, etc.) is excluded.
-dayflow-frontend/
-
 # --- Agent Session Memories ---
 AGENT_SESSION_MEMORY.md
 status_report/

@@ -1,0 +1,84 @@
+.stat-card {
+  padding: 1.25rem 1.75rem;
+}
+
+.stat-label {
+  color: var(--dt-text-muted);
+  font-size: 0.85rem;
+}
+
+.stat-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--df-primary);
+}
+
+.charts-row {
+  margin-top: 1.25rem;
+  align-items: stretch;
+}
+
+.chart-card {
+  flex: 1;
+  min-width: 320px;
+  padding: 1.25rem;
+}
+
+.bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  height: 160px;
+}
+
+.bar-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  flex: 1;
+  height: 100%;
+}
+
+.bar {
+  width: 100%;
+  background: var(--df-primary);
+  border-radius: 3px 3px 0 0;
+  min-height: 2px;
+}
+
+.bar-label {
+  margin-top: 0.4rem;
+  font-size: 0.72rem;
+  color: var(--dt-text-muted);
+}
+
+.hc-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.hc-label {
+  width: 120px;
+  font-size: 0.85rem;
+}
+
+.hc-bar-track {
+  flex: 1;
+  background: var(--dt-bg);
+  border-radius: 4px;
+  overflow: hidden;
+  height: 10px;
+}
+
+.hc-bar {
+  height: 100%;
+  background: var(--dt-accent);
+}
+
+.hc-count {
+  width: 28px;
+  text-align: right;
+  font-size: 0.82rem;
+}

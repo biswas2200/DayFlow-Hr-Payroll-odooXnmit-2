@@ -1,0 +1,92 @@
+<div class="page">
+  <h2>New Employee</h2>
+
+  @if (created(); as result) {
+    <div class="card success-card">
+      <p>✅ Employee account created.</p>
+      <p>
+        Login ID: <strong>{{ result.loginId }}</strong>
+      </p>
+      <p class="text-muted">
+        A temporary password has been generated and emailed to the employee. They'll be required to
+        change it on first login.
+      </p>
+      <button class="btn btn-primary" (click)="backToDirectory()">Back to Directory</button>
+    </div>
+  } @else {
+    <form class="card form-card" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="field">
+        <label for="companyName">Company Name</label>
+        <input id="companyName" type="text" formControlName="companyName" placeholder="e.g. Odoo India" />
+      </div>
+
+      <div class="row">
+        <div class="field" style="flex:1">
+          <label for="firstName">First Name</label>
+          <input id="firstName" type="text" formControlName="firstName" />
+        </div>
+        <div class="field" style="flex:1">
+          <label for="lastName">Last Name</label>
+          <input id="lastName" type="text" formControlName="lastName" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" type="email" formControlName="email" />
+      </div>
+
+      <div class="field">
+        <label for="phone">Phone</label>
+        <input id="phone" type="tel" formControlName="phone" />
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <div class="password-row">
+          <input
+            id="password"
+            [type]="showPassword() ? 'text' : 'password'"
+            formControlName="password"
+          />
+          <button type="button" class="icon-toggle" (click)="showPassword.set(!showPassword())">
+            {{ showPassword() ? '🙈' : '👁' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="confirmPassword">Confirm Password</label>
+        <div class="password-row">
+          <input
+            id="confirmPassword"
+            [type]="showConfirm() ? 'text' : 'password'"
+            formControlName="confirmPassword"
+          />
+          <button type="button" class="icon-toggle" (click)="showConfirm.set(!showConfirm())">
+            {{ showConfirm() ? '🙈' : '👁' }}
+          </button>
+        </div>
+        @if (form.errors?.['mismatch'] && form.get('confirmPassword')?.touched) {
+          <span class="error">Passwords do not match.</span>
+        }
+      </div>
+
+      @if (errorMessage()) {
+        <p class="error">{{ errorMessage() }}</p>
+      }
+
+      <p class="text-muted note">
+        A Login ID and temporary password will be generated automatically on submit
+        (format: <code>[Initials][First2+First2][Year][Serial]</code>).
+      </p>
+
+      <div class="row">
+        <button type="submit" class="btn btn-primary" [disabled]="submitting()">
+          {{ submitting() ? 'Creating…' : 'Sign Up' }}
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="backToDirectory()">Cancel</button>
+      </div>
+    </form>
+  }
+</div>

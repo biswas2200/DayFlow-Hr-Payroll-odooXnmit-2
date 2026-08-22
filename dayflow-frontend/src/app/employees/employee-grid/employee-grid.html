@@ -1,0 +1,34 @@
+<div class="page">
+  <div class="toolbar">
+    @if (isAdmin()) {
+      <a routerLink="/employees/new" class="btn btn-primary">+ New</a>
+    }
+    <input
+      class="search"
+      type="search"
+      placeholder="Search employees…"
+      [ngModel]="search()"
+      (ngModelChange)="onSearchChange($event)"
+    />
+  </div>
+
+  @if (loading()) {
+    <p class="text-muted">Loading…</p>
+  } @else if (cards().length === 0) {
+    <p class="text-muted">No employees found.</p>
+  } @else {
+    <div class="grid">
+      @for (card of cards(); track card.id) {
+        <a class="card employee-card" [routerLink]="['/employees', card.id]">
+          <app-status-dot class="dot" [status]="card.statusDot" />
+          @if (card.profilePictureUrl) {
+            <img class="avatar" [src]="card.profilePictureUrl" [alt]="card.name" />
+          } @else {
+            <div class="avatar avatar-fallback">{{ card.name.charAt(0) }}</div>
+          }
+          <div class="name">{{ card.name }}</div>
+        </a>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,32 @@
+.auth-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--dt-bg);
+}
+
+.auth-card {
+  width: 360px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.logo-placeholder {
+  align-self: center;
+  font-weight: 700;
+  color: var(--df-primary);
+  margin-bottom: 1rem;
+}
+
+h2 {
+  margin-bottom: 1.25rem;
+}
+
+.hint {
+  margin-top: 0.75rem;
+  font-size: 0.78rem;
+  text-align: center;
+}

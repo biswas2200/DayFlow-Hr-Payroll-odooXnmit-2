@@ -1,0 +1,29 @@
+.form-card,
+.success-card {
+  max-width: 480px;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.password-row {
+  display: flex;
+  gap: 0.4rem;
+
+  input {
+    flex: 1;
+  }
+}
+
+.icon-toggle {
+  border: 1px solid var(--dt-border);
+  background: var(--dt-surface);
+  border-radius: var(--dt-radius);
+  cursor: pointer;
+  padding: 0 0.6em;
+}
+
+.note {
+  font-size: 0.78rem;
+  margin: 0.25rem 0 1rem;
+}

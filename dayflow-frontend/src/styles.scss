@@ -1,0 +1,264 @@
+// Dayflow global styles — Odoo-matched design tokens (SRS §5.1: "follow Odoo" governs
+// visual design/UX only; see documentation/design/01-system-architecture.md).
+
+:root {
+  // Odoo brand palette
+  --df-primary: #714b67;
+  --dt-primary-hover: #5f3d56;
+  --dt-primary-light: #f0e5ee;
+  --dt-accent: #00a09d;
+
+  // Status colors (SRS §3.2.1)
+  --dt-status-present: #28a745;
+  --dt-status-absent: #ffc107;
+  --dt-status-leave: #714b67;
+  --dt-status-danger: #dc3545;
+
+  // Neutrals
+  --dt-bg: #f4f5f7;
+  --dt-surface: #ffffff;
+  --dt-border: #e2e4e9;
+  --dt-text: #1f1f2e;
+  --dt-text-muted: #6b6f82;
+
+  // Layout
+  --dt-radius: 6px;
+  --dt-radius-lg: 10px;
+  --dt-shadow: 0 1px 2px rgba(16, 16, 40, 0.06), 0 1px 6px rgba(16, 16, 40, 0.05);
+  --dt-nav-height: 56px;
+  --dt-font: "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--dt-font);
+  background: var(--dt-bg);
+  color: var(--dt-text);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0 0 0.5em;
+  font-weight: 600;
+}
+
+a {
+  color: var(--df-primary);
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+}
+
+// --- Buttons ---
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  border: 1px solid transparent;
+  border-radius: var(--dt-radius);
+  padding: 0.5em 1.1em;
+  font-size: 0.92rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.btn-primary {
+  background: var(--df-primary);
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: var(--dt-primary-hover);
+  }
+}
+
+.btn-secondary {
+  background: var(--dt-surface);
+  color: var(--dt-text);
+  border-color: var(--dt-border);
+
+  &:hover:not(:disabled) {
+    background: var(--dt-bg);
+  }
+}
+
+.btn-danger {
+  background: var(--dt-status-danger);
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+}
+
+.btn-sm {
+  padding: 0.3em 0.75em;
+  font-size: 0.82rem;
+}
+
+// --- Form controls ---
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
+  margin-bottom: 1em;
+
+  label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--dt-text-muted);
+  }
+
+  input,
+  select,
+  textarea {
+    font-family: inherit;
+    font-size: 0.92rem;
+    padding: 0.55em 0.75em;
+    border: 1px solid var(--dt-border);
+    border-radius: var(--dt-radius);
+    background: var(--dt-surface);
+    color: var(--dt-text);
+    outline: none;
+    transition: border-color 0.15s ease;
+
+    &:focus {
+      border-color: var(--df-primary);
+    }
+
+    &:disabled {
+      background: var(--dt-bg);
+      color: var(--dt-text-muted);
+    }
+  }
+
+  .error {
+    font-size: 0.78rem;
+    color: var(--dt-status-danger);
+  }
+}
+
+// --- Card / surface ---
+.card {
+  background: var(--dt-surface);
+  border: 1px solid var(--dt-border);
+  border-radius: var(--dt-radius-lg);
+  box-shadow: var(--dt-shadow);
+}
+
+// --- Tables ---
+table.dt-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--dt-surface);
+
+  th,
+  td {
+    text-align: left;
+    padding: 0.65em 0.9em;
+    border-bottom: 1px solid var(--dt-border);
+    font-size: 0.88rem;
+  }
+
+  th {
+    color: var(--dt-text-muted);
+    font-weight: 600;
+    background: var(--dt-bg);
+  }
+}
+
+// --- Tabs ---
+.tabs {
+  display: flex;
+  gap: 0.25em;
+  border-bottom: 1px solid var(--dt-border);
+  margin-bottom: 1.25em;
+}
+
+.tab {
+  padding: 0.6em 1em;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--dt-text-muted);
+  border-bottom: 2px solid transparent;
+
+  &.active {
+    color: var(--df-primary);
+    border-bottom-color: var(--df-primary);
+  }
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.15em 0.6em;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+.badge-success {
+  background: #e5f6ea;
+  color: var(--dt-status-present);
+}
+
+.badge-warning {
+  background: #fff6e0;
+  color: #92720b;
+}
+
+.badge-danger {
+  background: #fdeaea;
+  color: var(--dt-status-danger);
+}
+
+.badge-muted {
+  background: var(--dt-bg);
+  color: var(--dt-text-muted);
+}
+
+.page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.text-muted {
+  color: var(--dt-text-muted);
+}

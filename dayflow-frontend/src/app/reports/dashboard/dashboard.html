@@ -1,0 +1,47 @@
+<div class="page">
+  <h2>Dashboard</h2>
+
+  @if (loading()) {
+    <p class="text-muted">Loading…</p>
+  } @else if (summary(); as s) {
+    <div class="row">
+      <div class="card stat-card">
+        <div class="stat-label">Attendance Today</div>
+        <div class="stat-value">{{ s.attendancePercentToday }}%</div>
+      </div>
+    </div>
+
+    <div class="row charts-row">
+      <div class="card chart-card">
+        <h4>Leave Trends</h4>
+        <div class="bars">
+          @for (t of s.leaveTrends; track t.month) {
+            <div class="bar-col">
+              <div class="bar" [style.height.%]="(t.count / maxTrend(s.leaveTrends)) * 100"></div>
+              <span class="bar-label">{{ t.month }}</span>
+            </div>
+          } @empty {
+            <p class="text-muted">No leave data yet.</p>
+          }
+        </div>
+      </div>
+
+      <div class="card chart-card">
+        <h4>Headcount by Department</h4>
+        <div class="stack">
+          @for (d of s.headcountByDepartment; track d.department) {
+            <div class="hc-row">
+              <span class="hc-label">{{ d.department }}</span>
+              <div class="hc-bar-track">
+                <div class="hc-bar" [style.width.%]="(d.count / maxHeadcount(s.headcountByDepartment)) * 100"></div>
+              </div>
+              <span class="hc-count">{{ d.count }}</span>
+            </div>
+          } @empty {
+            <p class="text-muted">No department data yet.</p>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>
